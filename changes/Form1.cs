@@ -37,22 +37,31 @@ namespace changes
         private void Button1_Click(object sender, EventArgs e)
         {
             if (!decimal.TryParse(textBox1.Text, out decimal decValue)) { return; }
-            double dubValue = (double)decValue;
-            label13.Text = ((int)(Math.Truncate(Math.Log(dubValue, 2))) + 1).ToString();
-            decimal redubValue = (decimal)dubValue;
-            textBox3.Text = redubValue.ToString();
+            //double dubValue = (double)decValue;
+            //label13.Text = ((int)(Math.Truncate(Math.Log(dubValue, 2))) + 1).ToString();
+            //decimal redubValue = (decimal)dubValue;
+            //textBox3.Text = redubValue.ToString();
 
-            int digits = 1;
-            ulong multilpier = (ulong)Math.Pow(10, GetScale(decValue));
+            ulong multilpier = GetScaleFromDec(decValue);
             label12.Text = multilpier.ToString();
             decValue = decValue * multilpier;
-            textBox1.Text = decValue.ToString();
-            while (CreateMaxDecimalFromBitCount(digits) < decValue) { digits++; }
-            label15.Text = digits.ToString();
+            textBox3.Text =  RemoveScale(decValue).ToString();
+
+            label15.Text = MinBiDigits(decValue).ToString();
         }
-        private byte GetScale(decimal dVal)
+        //private ulong GetMultiplyer(decimal dVal)
+        //{
+        //    return (ulong)Math.Pow(10, GetScale(dVal));
+        //}
+        //private byte GetScale(decimal dVal)
+        //{
+        //    return BitConverter.GetBytes(Decimal.GetBits(dVal)[3])[2];
+        //}
+        private ulong GetScaleFromDec(decimal dVal)
         {
-            return BitConverter.GetBytes(Decimal.GetBits(dVal)[3])[2];
+            // https://stackoverflow.com/questions/13477689/find-number-of-decimal-places-in-decimal-value-regardless-of-culture
+            // https://stackoverflow.com/users/1477076/burning-legion
+            return (ulong)Math.Pow(10, BitConverter.GetBytes(Decimal.GetBits(dVal)[3])[2]);
         }
         private void Button3_Click(object sender, EventArgs e)
         {
@@ -69,6 +78,20 @@ namespace changes
             byte scale = BitConverter.GetBytes(parts[3])[2];
             decimal d = new decimal(lo: lo, mid: mid, hi: hi, isNegative: sign, scale: scale);
             label12.Text = scale.ToString();
+        }
+        private decimal RemoveScale(decimal dVal)
+        {
+            //int[] parts = Decimal.GetBits(dVal);
+            //parts[3] = parts[3] & 0x8000; // remove everything except the sign bit
+            //return new decimal(parts);
+            //return dVal;
+            return Math.Truncate(dVal);
+        }
+        private int MinBiDigits(decimal dVal)
+        {
+            int digits = 1;
+            while (CreateMaxDecimalFromBitCount(digits) < dVal) { digits++; }
+            return digits;
         }
         private decimal CreateMaxDecimalFromBitCount(int bits)
         {
